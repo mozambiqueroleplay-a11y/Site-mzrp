@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mozambique Roleplay - MZRP</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <nav>
+            <div class="logo">MZ<span>RP</span></div>
+            <ul>
+                <li><a href="#inicio">Início</a></li>
+                <li><a href="#discord">Discord</a></li>
+                <li><a href="#como-jogar">Como Jogar</a></li>
+                <li><a href="#suporte">Suporte</a></li>
+                <li><a href="#" onclick="abrirServerInfo()">Server Info</a></li>
+                <li><a href="#" class="btn-login" onclick="abrirLogin()">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="inicio" class="hero">
+        <div class="hero-content">
+            <img src="images/logo_servidor.png" alt="Logo MZRP" class="main-logo">
+            <h1>MOZAMBIQUE <span>ROLEPLAY</span></h1>
+            <p>O melhor servidor de SAMP de Moçambique agora ao seu alcance.</p>
+            
+            <div class="ip-box">
+                <span id="server-ip">149.56.41.52:7770</span>
+                <button onclick="copyIP()">Copiar IP</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="como-jogar" class="download-section">
+        <h2>Como Jogar</h2>
+        <div class="download-container">
+            
+            <div class="download-card">
+                <img src="images/gameplay_android.png" alt="Baixar no Android" class="gameplay-img">
+                <h3>Versão Android</h3>
+                <div class="requirements">
+                    <p><strong>RAM:</strong> 2GB</p>
+                    <p><strong>Armazenamento:</strong> 3GB (Total)</p>
+                    <p><strong>Sistema:</strong> Android 7.0+</p>
+                </div>
+                <div class="download-btns">
+                    <a href="#" class="btn apk">Download APK</a>
+                    <a href="#" class="btn data">Download DATA Mobile</a>
+                </div>
+            </div>
+
+            <div class="download-card">
+                <img src="images/gameplay_pc.png" alt="Baixar no Windows" class="gameplay-img">
+                <h3>Versão Windows</h3>
+                <div class="requirements">
+                    <p><strong>RAM:</strong> 4GB</p>
+                    <p><strong>Processador:</strong> Dual Core+</p>
+                    <p><strong>Armazenamento:</strong> 5GB</p>
+                </div>
+                <div class="download-btns">
+                    <a href="#" class="btn exe">Download .EXE</a>
+                    <a href="#" class="btn data-pc">Download DATA PC</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="discord" class="discord-section">
+        <h2>Nossa Comunidade</h2>
+        <iframe src="https://discord.com/widget?id=1304022729883910154&theme=dark" width="100%" height="400" allowtransparency="true" frameborder="0"></iframe>
+    </section>
+
+    <section id="regras" class="rules-section">
+        <div class="rules-window">
+            <div class="window-header"></div>
+            <div class="window-content">
+                <h2>Regulamento Oficial</h2>
+                <p>Leia atentamente as diretrizes do nosso servidor para garantir a melhor experiência de Roleplay.</p>
+                <button class="btn-open-rules" onclick="abrirRegulamento()">Ler Regulamentos</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="pagina-regras" class="full-rules-page" style="display: none;">
+        <button class="btn-fechar-geral" onclick="fecharRegulamento()">⬅ Voltar ao Início</button>
+        
+        <div class="rules-menu-container">
+            <h1>Central de Diretrizes</h1>
+            <p>Selecione uma categoria para visualizar as normas específicas</p>
+
+            <div class="categories-grid">
+                <div class="cat-card" onclick="verCategoria('rp')" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/banner-rp.png');">
+                    <span>Regras Roleplay</span>
+                </div>
+                <div class="cat-card" onclick="verCategoria('corp')" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/banner-corp.png');">
+                    <span>Regras Corporações</span>
+                </div>
+                <div class="cat-card" onclick="verCategoria('crim')" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/banner-crim.png');">
+                    <span>Regras Org. Criminosas</span>
+                </div>
+                <div class="cat-card" onclick="verCategoria('roubos')" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/banner-roubos.png');">
+                    <span>Regras de Roubos</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="detalhe-regras" class="rules-detail-view" style="display: none;">
+            <button class="btn-voltar-cat" onclick="voltarCategorias()">⬅ Voltar Categorias</button>
+            <div id="lista-regras-dinamica" class="rules-list-box">
+                </div>
+        </div>
+    </div>
+
+    <div id="pagina-server-info" class="full-info-page" style="display: none;">
+        <button class="btn-fechar-geral" onclick="fecharServerInfo()">⬅ Voltar ao Início</button>
+        
+        <div class="info-menu-container">
+            <h1>Painel do Servidor</h1>
+            <p>Acompanhe em tempo real as novidades e o estado do MZRP</p>
+
+            <div class="server-status-bar">
+                <div class="status-item">
+                    <span class="label">Status:</span>
+                    <span class="value online">ONLINE</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Jogadores:</span>
+                    <span class="value">42 / 100</span> </div>
+                <div class="status-item">
+                    <span class="label">Versão:</span>
+                    <span class="value">v1.0.4 (Android 15 Comp.)</span>
+                </div>
+            </div>
+
+            <div class="categories-grid">
+                <div class="cat-card-info" onclick="verInfo('atualizacoes')">
+                    <div class="info-icon">📑</div>
+                    <span>Atualizações</span>
+                </div>
+                <div class="cat-card-info" onclick="verInfo('spoilers')">
+                    <div class="info-icon">🎥</div>
+                    <span>Spoilers</span>
+                </div>
+                <div class="cat-card-info" onclick="verInfo('galeria')">
+                    <div class="info-icon">🖼️</div>
+                    <span>Galeria</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="detalhe-info" class="info-detail-view" style="display: none;">
+            <button class="btn-voltar-cat" onclick="voltarCategoriasInfo()">⬅ Voltar ao Painel</button>
+            <div id="conteudo-info-dinamico" class="info-content-box">
+                </div>
+        </div>
+    </div>
+
+    <footer id="suporte">
+            <div class="footer-container">
+                <div class="footer-box">
+                    <img src="images/logo_servidor.png" alt="Logo" class="footer-logo">
+                    <p>MZRP 2026. Vivendo a realidade em San Andreas. Onde sua história acontece.</p>
+                </div>
+
+                <div class="footer-box">
+                    <h4>Siga-nos</h4>
+                    <div class="social-links">
+                        <a href="https://discord.gg/jDKVwmY9a" target="_blank" rel="noopener noreferrer">Discord</a>
+                        <a href="https://www.youtube.com/@MozambiqueRoleplay" target="_blank" rel="noopener noreferrer">YouTube</a>
+                        <a href="https://www.instagram.com/mozambique_roleplay" target="_blank" rel="noopener noreferrer">Instagram</a>
+                        <a href="https://whatsapp.com/channel/0029Vb5oiwmKgsNs9WPiwk2d" target="_blank" rel="noopener noreferrer">Canal do WhatsApp</a>
+                        <a href="https://www.tiktok.com/@mozambique_roleplay" target="_blank" rel="noopener noreferrer">TikTok</a>
+                    </div>
+                </div>
+
+                <div class="footer-box">
+                    <h4 class="fale-conosco-title">FALE <span class="azul-especial">CONOSCO</span></h4>
+                    <p>E-mail: <a href="mailto:mozmbiqueroleplay@gmail.com" style="color: #ccc; text-decoration: none;">mozmbiqueroleplay@gmail.com</a></p>
+                    <p>WhatsApp: <a href="https://wa.me/258842920599" target="_blank" rel="noopener noreferrer" style="color: #ccc; text-decoration: none;">+258 84 292 0599</a></p>
+                </div>
+            </div>
+            <div class="copy">© MZRP. Todos os direitos reservados.</div>
+        </footer>
+
+    <script>
+        /* BANCO DE REGRAS OFICIAIS - MZRP 2026 */
+        const bancoRegras = {
+            'rp': [
+                "OBRIGAÇÕES GERAIS DE ROLEPLAY",
+                "É obrigatório manter Roleplay ativo 100% do tempo.",
+                "Proibido MetaGaming (MG), PowerGaming (PG) e DeathMatch (DM).",
+                "Proibido Revenge Kill (RK) e Combat Log.",
+                "Respeitar tempo de reação em /me e /do.",
+                "Proibido uso de bugs.",
+                "Obrigatório Fear RP (valorizar a própria vida).",
+                "COMPORTAMENTO EM AÇÕES",
+                "Abordagem Policial: Encostar o veículo ao receber ordem e não fugir sem motivo RP.",
+                "Não reagir contra 2 ou mais armas apontadas.",
+                "Respeitar revista com justificativa RP.",
+                "ASSALTOS",
+                "Valorizar a própria vida e cooperar sob mira de arma.",
+                "Não reagir se já estiver rendido.",
+                "Não chamar ajuda externa (Discord).",
+                "EM CASO DE MORTE",
+                "Esquecer a última ação que causou sua morte.",
+                "Não retornar imediatamente ao local e não reconhecer agressor.",
+                "USO DE ARMAS",
+                "Porte apenas com licença válida; proibido andar armado sem motivo.",
+                "Proibido atirar em Safe Zone.",
+                "PROPRIEDADES E EMPREGOS",
+                "Proibido usar casa como safe abusiva ou fugir para interior em ação.",
+                "SAFE ZONE (Prefeitura, Hospital, Spawn, Central, etc)",
+                "Proibido iniciar agressão ou puxar arma em Safe Zone.",
+                "AÇÕES PROIBIDAS",
+                "VDM (usar veículo como arma), Flood e Fake denúncia.",
+                "Abusar de animações para vantagem.",
+                "PUNIÇÕES",
+                "Quebra de regra: Cadeia Staff.",
+                "Abuso grave: Ban Temporário.",
+                "Cheat ou Bug Abuse: Ban Permanente."
+            ],
+            'corp': [
+                "ABORDAGENS E USO DE FORÇA",
+                "Proibido abordar e matar sem motivo.",
+                "Progressão: Aviso verbal > Taser se fugir > atirar só em ameaça real.",
+                "Em ações criminais: só atirar se o criminoso sacar a arma primeiro.",
+                "Nunca atacar civis não envolvidos.",
+                "AÇÕES EM OPERAÇÕES",
+                "Confrontos apenas com suspeito armado.",
+                "Fuga para facção: contatar líder/sub ou Secretário para planejar invasão.",
+                "MULTAS E INFRAÇÕES",
+                "Multar por CNH irregular, sem placa, direção perigosa ou embriaguez.",
+                "Proibido flood de multas ou aplicar sem motivo RP.",
+                "INVASÃO DE ORGS/FACÇÕES",
+                "Proibido invadir sem permissão de líder, sub-líder ou Secretário.",
+                "TABELA DE ESTRELAS (PRISÃO)",
+                "Desacato: 1 estrela | Resistência: 3 estrelas",
+                "Fuga: 2 estrelas | Roubo: 4 estrelas",
+                "Porte Ilegal: 4 estrelas | Sequestro: 6 estrelas",
+                "Homicídio: 6 estrelas | Tentativa de Homicídio: 5 estrelas",
+                "Tráfico de Drogas: 5 estrelas | Roubo de Veículo: 4 estrelas",
+                "Corrupção / Traição: 6 estrelas (Ban)",
+                "Veículo sem placa ou CNH irregular: 1 estrela + Multa",
+                "Atirar em civil sem motivo: 6 estrelas",
+                "PUNIÇÕES CORPORATIVAS",
+                "Corrupção ou Traição: Prisão perpétua (Ban).",
+                "Ações fora do RP: Cadeia Staff ou Ban temporário."
+            ],
+            'crim': [
+                "AÇÕES CRIMINOSAS",
+                "ROUBO DE CAIXINHA: Min 2, Max 4 membros. Apenas Desert Eagle.",
+                "ASSALTO A LOJA: Necessário 5 criminosos. Anunciar via RP.",
+                "ABORDAGEM INDIVIDUAL: 1 pessoa pode abordar usando Desert.",
+                "Proibido atirar sem motivo RP e deve respeitar tempo de reação.",
+                "INVASÃO DE FACÇÕES: Apenas Fuzil AK ou M4. Anunciar previamente.",
+                "Motivos válidos: guerra declarada, vingança ou disputa territorial.",
+                "SEQUESTRO: Motivo RP válido. Máximo 2 reféns. Tempo máx: 30 min.",
+                "Negociação obrigatória com a polícia presente.",
+                "REGRAS DE SAQUE (LOOT)",
+                "Proibido matar apenas para saquear ou saquear sem motivo RP.",
+                "Saque de dinheiro: pedir BI e solicitar valor (proibido levar 100%).",
+                "Saque de Policiais: proibido em casos normais (apenas em sequestro RP).",
+                "LIDERANÇA",
+                "Apenas líderes/sublíderes organizam grandes ações.",
+                "Ação sem autorização da liderança é considerada quebra de RP."
+            ],
+            'roubos': [
+                "CAIXAS ELETRÔNICOS: Criminosos (2-4) | PM (2-5).",
+                "Armas: Desert e Pistola 9mm. PM usa Taser para prender.",
+                "LOJAS 24/7: Criminosos (4-5) | PM (4-6). Max 1 refém.",
+                "Armas Crim: Tec9, Uzi, AK47, SMG | PM: M4, MP5, Shotgun.",
+                "JOALHERIA: Criminosos (4-5) | PM (4-6). Max 1 refém.",
+                "Regra: Negociar refém. Fuga: atirar só após bater o carro 3 vezes.",
+                "BANCO FLEECA: Criminosos (4-6) | PM (4-8). Max 2 reféns.",
+                "Veículos: Max 3 criminosos | Max 4 viaturas PM.",
+                "BANCO CENTRAL (GRANDE): Criminosos (6-8) | PM (8-10).",
+                "Reféns: Min 3, Max 6. Veículos: Max 4 criminosos | Max 5 PM.",
+                "Armas: C4 para cofre. PM pode usar até 2 Snipers.",
+                "OBRIGATÓRIO NEGOCIAÇÃO EM TODOS OS ROUBOS COM REFÉM.",
+                "AVISO PM: Usar taser e depois matar propositalmente gera 1h de cadeia admin."
+            ]
+        };
+
+        /* FUNÇÕES DE CONTROLE DA PÁGINA */
+        function abrirRegulamento() {
+            document.getElementById('pagina-regras').style.display = 'block';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function fecharRegulamento() {
+            document.getElementById('pagina-regras').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function verCategoria(cat) {
+            document.querySelector('.rules-menu-container').style.display = 'none';
+            const detalhe = document.getElementById('detalhe-regras');
+            const lista = document.getElementById('lista-regras-dinamica');
+            
+            detalhe.style.display = 'block';
+            lista.innerHTML = bancoRegras[cat].map(regra => `<div class="rule-item">${regra}</div>`).join('');
+            
+            // Scroll para o topo da lista de regras
+            document.getElementById('pagina-regras').scrollTop = 0;
+        }
+
+        function voltarCategorias() {
+            document.getElementById('detalhe-regras').style.display = 'none';
+            document.querySelector('.rules-menu-container').style.display = 'block';
+        }
+        function copyIP() {
+            const ip = document.getElementById('server-ip').innerText;
+            navigator.clipboard.writeText(ip);
+            alert("IP Copiado: " + ip);
+        }
+
+        function abrirServerInfo() {
+            document.getElementById('pagina-server-info').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharServerInfo() {
+            document.getElementById('pagina-server-info').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function verInfo(tipo) {
+            document.querySelector('.info-menu-container').style.display = 'none';
+            const detalhe = document.getElementById('detalhe-info');
+            const conteudo = document.getElementById('conteudo-info-dinamico');
+            detalhe.style.display = 'block';
+
+            if(tipo === 'galeria') {
+                conteudo.innerHTML = `
+                    <h3>Galeria do Servidor</h3>
+                    <div class="galeria-grid">
+                        <img src="images/foto1.jpg">
+                        <img src="images/foto2.jpg">
+                        <img src="images/foto3.jpg">
+                    </div>
+                `;
+            } else if(tipo === 'atualizacoes') {
+                conteudo.innerHTML = `
+                    <h3>Últimas Atualizações</h3>
+                    <p>▶ Compatibilidade total com Android 15.</p>
+                    <p>▶ Novo sistema de placas de veículos (/verificarplaca).</p>
+                    <p>▶ Otimização de FPS no mapa de Maputo.</p>
+                `;
+            } else if(tipo === 'spoilers') {
+                conteudo.innerHTML = `
+                    <h3>Em Breve...</h3>
+                    <p>🔥 Novo sistema de inventário visual.</p>
+                    <p>🚓 Novas fardas para a Polícia da República.</p>
+                `;
+            }
+        }
+
+        function voltarCategoriasInfo() {
+            document.getElementById('detalhe-info').style.display = 'none';
+            document.querySelector('.info-menu-container').style.display = 'block';
+        }
+
+        // Defina as imagens correspondentes aqui
+        const fundosInfo = {
+            'updates': 'images/info-updates.png',
+            'spoilers': 'images/info-spoilers.png',
+            'galeria': 'images/info-gallery.png'
+        };
+
+        function verInfo(tipo) {
+            document.querySelector('.info-menu-container').style.display = 'none';
+            const paginaInfo = document.getElementById('pagina-server-info'); // Referência à página inteira
+            const detalhe = document.getElementById('detalhe-info');
+            const conteudo = document.getElementById('conteudo-info-dinamico');
+            
+            // --- AQUI ESTÁ A MUDANÇA ---
+            // Aplica o fundo fixo e exclusivo via JavaScript
+            paginaInfo.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('${fundosInfo[tipo]}')`;
+            paginaInfo.style.backgroundAttachment = 'fixed'; // Garante que a imagem fique fixa
+            // ----------------------------
+
+            detalhe.style.display = 'block';
+
+            if(tipo === 'galeria') {
+                conteudo.innerHTML = `
+                    <h3>Galeria do Servidor</h3>
+                    <div class="galeria-grid">
+                        <img src="images/prints/print1.png" alt="Print 1">
+                        <img src="images/prints/print2.png" alt="Print 2">
+                        <img src="images/prints/print3.png" alt="Print 3">
+                        <img src="images/prints/print4.png" alt="Print 4">
+                        <img src="images/prints/print5.png" alt="Print 5">
+                        <img src="images/prints/print6.png" alt="Print 6">
+                        <img src="images/prints/print7.png" alt="Print 7">
+                        <img src="images/prints/print8.png" alt="Print 8">
+                        <img src="images/prints/print9.png" alt="Print 9">
+                        <img src="images/prints/print10.png" alt="Print 10">
+                        <img src="images/prints/print11.png" alt="Print 11">
+                        <img src="images/prints/print12.png" alt="Print 12">
+                        <img src="images/prints/print13.png" alt="Print 13">
+                        <img src="images/prints/print15.png" alt="Print 14">
+                        <img src="images/prints/print15.png" alt="Print 15">
+                    </div>
+                `;
+            } else if(tipo === 'atualizacoes') {
+                conteudo.innerHTML = `
+                    <h3>Últimas Atualizações</h3>
+                    <p>▶ Compatibilidade total com Android 15.</p>
+                    <p>▶ Novo sistema de placas de veículos (/verificarplaca).</p>
+                    <p>▶ Otimização de FPS no mapa de Maputo v1.8.</p>
+                `;
+            } else if(tipo === 'spoilers') {
+                conteudo.innerHTML = `
+                    <h3>Em Breve...</h3>
+                    <p>🔥 Novo sistema de inventário visual.</p>
+                    <p>🚓 Novas fardas para a Polícia da República.</p>
+                    <p>💰 Novo sistema de roubo a banco grande.</p>
+                `;
+            }
+            
+            paginaInfo.scrollTop = 0; // Volta para o topo da lista
+        }
+
+        function voltarCategoriasInfo() {
+            const paginaInfo = document.getElementById('pagina-server-info');
+            document.getElementById('detalhe-info').style.display = 'none';
+            document.querySelector('.info-menu-container').style.display = 'block';
+            
+            // Opcional: Voltar para o fundo padrão do Painel ao sair da categoria
+            paginaInfo.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('images/Server-Info-BG.jpg')`;
+        }
+    </script>
+</body>
+</html>
