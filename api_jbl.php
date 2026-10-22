@@ -1,45 +1,149 @@
+
 <?php
-// api_jbl.php - API de Pesquisa Dinâmica do YouTube para o Mozambique Roleplay
-header('Content-Type: application/json; charset=utf-8');
+header('Content-Type: text/plain; charset=utf-8');
 
-$API_KEY = "AIzaSyDHeC9SSpMgSe-w1wTQIBB-tlN6V7WGExs"; // Sua chave do YouTube
+$apiKey = 'AIzaSyApyHnAOO2Sax36fdgT4Y6K4qM9oiyniL4';
 
-if(!isset($_GET['q']) || empty($_GET['q'])){
-    echo json_encode([]);
-    exit;
+$q = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+if ($q === '' || strlen($q) > 200) {
+    http_response_code(400);
+    exit("ERRO: Pesquisa vazia ou demasiado longa.");
 }
 
-$query = urlencode($_GET['q']);
-$maxResults = 10; // Quantidade de resultados na busca
-
-$youtubeAPI = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=$query&maxResults=$maxResults&key=$API_KEY";
-
-$response = @file_get_contents($youtubeAPI);
-if($response === FALSE){
-    echo json_encode([]);
-    exit;
+if ($apiKey === 'AIzaSyApyHnAOO2Sax36fdgT4Y6K4qM9oiyniL4') {
+    http_response_code(500);
+    exit("ERRO: Configura a chave da API.");
 }
 
-$data = json_decode($response, true);
-$musicas = [];
+function youtubeRequest($url) {
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 15,
+            'ignore_errors' => true,
+            'header' => "Accept: application/json\r\n"
+        ]
+    ]);
 
-if(isset($data['items'])){
-    foreach($data['items'] as $item){
-        $videoId = $item['id']['videoId'];
-        $titulo = html_entity_decode($item['snippet']['title'], ENT_QUOTES, 'UTF-8');
-        $canal = html_entity_decode($item['snippet']['channelTitle'], ENT_QUOTES, 'UTF-8');
-        
-        // Link direto do YouTube (Para tocar no SA-MP, o servidor usa services de conversão ou stream compatível)
-        $linkStream = "https://www.youtube.com/watch?v=" . $videoId;
+    $response = @file_get_contents($url, false, $context);
 
-        $musicas[] = [
-            "titulo" => $titulo,
-            "artista" => $canal,
-            "duracao" => "YouTube",
-            "url" => $linkStream
-        ];
+    if ($response === false) {
+        return false;
+    }
+
+    $json = json_decode($response, true);
+
+    if (!is_array($json)) {
+        return false;
+    }
+
+    if (isset($json['error'])) {
+        return false;
+    }
+
+    return $json;
+}
+
+function cleanField($value) {
+    $value = strip_tags((string)$value);
+    $value = str_replace(["\t", "\r", "\n"], ' ', $value);
+    return trim($value);
+}
+
+function formatDuration($iso) {
+    try {
+        $duration = new DateInterval($iso);
+        $seconds = ($duration->d * 86400)
+                 + ($duration->h * 3600)
+                 + ($duration->i * 60)
+                 + $duration->s;
+
+        return sprintf(
+            '%02d:%02d',
+            intdiv($seconds, 60),
+            $seconds % 60
+        );
+    } catch (Exception $e) {
+        return '00:00';
     }
 }
 
-echo json_encode($musicas, JSON_UNESCAPED_UNICODE);
+$searchUrl = 'https://www.googleapis.com/youtube/v3/search?' .
+    http_build_query([
+        'part' => 'snippet',
+        'type' => 'video',
+        'maxResults' => 20,
+        'q' => $q,
+        'key' => $apiKey
+    ]);
+
+$search = youtubeRequest($searchUrl);
+
+if ($search === false) {
+    http_response_code(502);
+    exit("ERRO_API");
+}
+
+$videos = [];
+
+foreach (($search['items'] ?? []) as $item) {
+    $id = $item['id']['videoId'] ?? '';
+
+    if ($id === '') {
+        continue;
+    }
+
+    $videos[] = [
+        'id' => $id,
+        'title' => cleanField(
+            $item['snippet']['title'] ?? ''
+        ),
+        'artist' => cleanField(
+            $item['snippet']['channelTitle'] ?? ''
+        )
+    ];
+}
+
+if (count($videos) === 0) {
+    exit("SEM_RESULTADOS");
+}
+
+$ids = array_column($videos, 'id');
+
+$detailsUrl = 'https://www.googleapis.com/youtube/v3/videos?' .
+    http_build_query([
+        'part' => 'contentDetails',
+        'id' => implode(',', $ids),
+        'key' => $apiKey
+    ]);
+
+$details = youtubeRequest($detailsUrl);
+
+if ($details === false) {
+    http_response_code(502);
+    exit("ERRO_API");
+}
+
+$durations = [];
+
+foreach (($details['items'] ?? []) as $item) {
+    $id = $item['id'] ?? '';
+    $iso = $item['contentDetails']['duration'] ?? '';
+
+    if ($id !== '' && $iso !== '') {
+        $durations[$id] = formatDuration($iso);
+    }
+}
+
+foreach ($videos as $video) {
+    $id = $video['id'];
+
+    // Formato: título TAB canal TAB duração TAB ID do vídeo
+    $line = $video['title'] . "\t"
+          . $video['artist'] . "\t"
+          . ($durations[$id] ?? '00:00') . "\t"
+          . $id;
+
+    echo $line . "\n";
+}
 ?>
