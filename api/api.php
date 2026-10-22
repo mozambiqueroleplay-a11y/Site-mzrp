@@ -4,14 +4,11 @@
 /*
  * Mozambique Roleplay - JBL Music API
  *
- * Resposta por linha:
+ * Resposta por música:
  * titulo TAB canal TAB duracao TAB video_id
  *
- * Exemplo:
- * Musica Exemplo    Artista    03:45    dQw4w9WgXcQ
- *
- * Configurar na Vercel:
- * YOUTUBE_API_KEY = tua chave do YouTube Data API v3
+ * Variável obrigatória na Vercel:
+ * YOUTUBE_API_KEY
  */
 
 ini_set('display_errors', '0');
@@ -21,14 +18,14 @@ header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
 
-const MAX_QUERY_LENGTH = 200;
-const MAX_RESULTS = 20;
-const REQUEST_TIMEOUT = 12;
+const JBL_MAX_QUERY_LENGTH = 200;
+const JBL_MAX_RESULTS = 20;
+const JBL_TIMEOUT = 12;
 
 /**
- * Termina a resposta com um erro legível.
+ * Termina o pedido com um erro simples.
  */
-function apiError(int $status, string $message): never
+function jblError(int $status, string $message): void
 {
     http_response_code($status);
     echo $message;
@@ -36,10 +33,9 @@ function apiError(int $status, string $message): never
 }
 
 /**
- * Limpa campos para manter uma linha por música
- * e evitar separadores que quebrariam o parser Pawn.
+ * Limpa campos para não quebrar o formato por linhas e TABs.
  */
-function cleanField(mixed $value): string
+function jblCleanField($value): string
 {
     if (!is_string($value) && !is_numeric($value)) {
         return '';
@@ -47,7 +43,7 @@ function cleanField(mixed $value): string
 
     $value = strip_tags((string) $value);
 
-    // Remove caracteres de controlo, tabs e quebras de linha.
+    // Substitui tabs, quebras de linha e caracteres de controlo.
     $value = preg_replace('/[\x00-\x1F\x7F]/u', ' ', $value) ?? '';
 
     // Normaliza espaços repetidos.
@@ -57,19 +53,19 @@ function cleanField(mixed $value): string
 }
 
 /**
- * Converte a duração ISO 8601 do YouTube para MM:SS
- * ou H:MM:SS para músicas com uma hora ou mais.
+ * Converte a duração ISO 8601 para MM:SS ou H:MM:SS.
  */
-function formatDuration(string $iso): string
+function jblFormatDuration(string $iso): string
 {
     try {
         $duration = new DateInterval($iso);
 
-        $seconds =
-            ($duration->days !== false ? $duration->days * 86400 : 0) +
-            ($duration->h * 3600) +
-            ($duration->i * 60) +
-            $duration->s;
+        $days = $duration->days === false ? 0 : $duration->days;
+
+        $seconds = ($days * 86400)
+            + ($duration->h * 3600)
+            + ($duration->i * 60)
+            + $duration->s;
 
         if ($seconds <= 0) {
             return '00:00';
@@ -95,22 +91,30 @@ function formatDuration(string $iso): string
 }
 
 /**
- * Faz um pedido à API oficial do YouTube.
- * Devolve o JSON ou null se houver falha.
+ * Faz um pedido à YouTube Data API v3.
+ * Nunca devolve nem imprime a chave da API.
  */
-function youtubeRequest(string $endpoint, array $params, string $apiKey): ?array
-{
+function jblYouTubeRequest(
+    string $endpoint,
+    array $params,
+    string $apiKey
+): ?array {
     $params['key'] = $apiKey;
 
     $url = 'https://www.googleapis.com/youtube/v3/'
         . $endpoint
         . '?'
-        . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        . http_build_query(
+            $params,
+            '',
+            '&',
+            PHP_QUERY_RFC3986
+        );
 
     $context = stream_context_create([
         'http' => [
             'method' => 'GET',
-            'timeout' => REQUEST_TIMEOUT,
+            'timeout' => JBL_TIMEOUT,
             'ignore_errors' => true,
             'header' =>
                 "Accept: application/json\r\n" .
@@ -121,20 +125,25 @@ function youtubeRequest(string $endpoint, array $params, string $apiKey): ?array
     $response = @file_get_contents($url, false, $context);
 
     if ($response === false) {
-        error_log('JBL API: falha de ligação ao YouTube.');
+        error_log('JBL API: falha de ligacao ao YouTube.');
         return null;
     }
 
     $json = json_decode($response, true);
 
     if (!is_array($json)) {
-        error_log('JBL API: resposta JSON inválida.');
+        error_log('JBL API: resposta JSON invalida.');
         return null;
     }
 
     if (isset($json['error'])) {
+        // Regista apenas o motivo, sem expor a chave nem o URL.
         $reason = $json['error']['errors'][0]['reason'] ?? 'unknown';
-        error_log('JBL YouTube API error: ' . cleanField($reason));
+
+        error_log(
+            'JBL YouTube API: ' . jblCleanField($reason)
+        );
+
         return null;
     }
 
@@ -142,52 +151,54 @@ function youtubeRequest(string $endpoint, array $params, string $apiKey): ?array
 }
 
 /*
- * Apenas aceitar pedidos GET.
+ * 1. Aceitar apenas pedidos GET.
  */
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+if ($method !== 'GET') {
     header('Allow: GET');
-    apiError(405, 'ERRO: Metodo nao permitido.');
+    jblError(405, 'ERRO: Metodo nao permitido.');
 }
 
 /*
- * Ler a chave secreta das variáveis de ambiente da Vercel.
+ * 2. Ler a chave secreta da variavel de ambiente.
  */
 $apiKey = trim((string) (getenv('YOUTUBE_API_KEY') ?: ''));
 
 if ($apiKey === '') {
-    apiError(500, 'ERRO: Chave da API nao configurada.');
+    error_log('JBL API: variavel YOUTUBE_API_KEY ausente ou vazia.');
+    jblError(500, 'ERRO: Chave da API nao configurada.');
 }
 
 /*
- * Validar a pesquisa.
+ * 3. Validar a pesquisa.
  */
 $q = trim((string) ($_GET['q'] ?? ''));
 
 if ($q === '') {
-    apiError(400, 'ERRO: Escreve o nome da musica.');
+    jblError(400, 'ERRO: Escreve o nome da musica.');
 }
 
-if (strlen($q) > MAX_QUERY_LENGTH) {
-    apiError(400, 'ERRO: Pesquisa demasiado longa.');
+if (strlen($q) > JBL_MAX_QUERY_LENGTH) {
+    jblError(400, 'ERRO: Pesquisa demasiado longa.');
 }
 
 if (preg_match('/[\x00-\x1F\x7F]/', $q)) {
-    apiError(400, 'ERRO: Pesquisa invalida.');
+    jblError(400, 'ERRO: Pesquisa invalida.');
 }
 
 /*
- * 1. Pesquisar vídeos públicos no YouTube.
+ * 4. Pesquisar ate 20 videos.
  */
-$search = youtubeRequest('search', [
+$search = jblYouTubeRequest('search', [
     'part' => 'snippet',
     'type' => 'video',
-    'maxResults' => MAX_RESULTS,
+    'maxResults' => JBL_MAX_RESULTS,
     'q' => $q,
-    'safeSearch' => 'none',
 ], $apiKey);
 
 if ($search === null) {
-    apiError(502, 'ERRO_API: Falha na pesquisa do YouTube.');
+    jblError(502, 'ERRO_API: Falha na pesquisa do YouTube.');
 }
 
 $videos = [];
@@ -195,13 +206,20 @@ $videos = [];
 foreach (($search['items'] ?? []) as $item) {
     $id = $item['id']['videoId'] ?? '';
 
-    // IDs de vídeos do YouTube têm normalmente 11 caracteres.
-    if (!is_string($id) || !preg_match('/^[A-Za-z0-9_-]{11}$/', $id)) {
+    if (
+        !is_string($id) ||
+        !preg_match('/^[A-Za-z0-9_-]{11}$/', $id)
+    ) {
         continue;
     }
 
-    $title = cleanField($item['snippet']['title'] ?? '');
-    $artist = cleanField($item['snippet']['channelTitle'] ?? '');
+    $title = jblCleanField(
+        $item['snippet']['title'] ?? ''
+    );
+
+    $artist = jblCleanField(
+        $item['snippet']['channelTitle'] ?? ''
+    );
 
     if ($title === '') {
         continue;
@@ -214,22 +232,22 @@ foreach (($search['items'] ?? []) as $item) {
     ];
 }
 
-if (!$videos) {
-    apiError(200, 'SEM_RESULTADOS');
+if (count($videos) === 0) {
+    jblError(200, 'SEM_RESULTADOS');
 }
 
 /*
- * 2. Consultar as durações em lote.
+ * 5. Obter as duracoes dos videos num unico pedido.
  */
 $ids = array_keys($videos);
 
-$details = youtubeRequest('videos', [
+$details = jblYouTubeRequest('videos', [
     'part' => 'contentDetails',
     'id' => implode(',', $ids),
 ], $apiKey);
 
 if ($details === null) {
-    apiError(502, 'ERRO_API: Falha ao obter as duracoes.');
+    jblError(502, 'ERRO_API: Falha ao obter as duracoes.');
 }
 
 $durations = [];
@@ -243,32 +261,35 @@ foreach (($details['items'] ?? []) as $item) {
         isset($videos[$id]) &&
         is_string($iso)
     ) {
-        $durations[$id] = formatDuration($iso);
+        $durations[$id] = jblFormatDuration($iso);
     }
 }
 
 /*
- * 3. Enviar resultados em formato simples para o Pawn.
+ * 6. Devolver os resultados para o Pawn.
  *
- * Não enviar cabeçalho de colunas: cada linha é uma música.
- * O ID permite identificar o vídeo, mas não é um URL de áudio.
+ * Formato:
+ * titulo TAB canal TAB duracao TAB video_id
+ *
+ * O ID do video nao e um URL de audio.
  */
 $count = 0;
 
 foreach ($videos as $video) {
-    if (!isset($durations[$video['id']])) {
+    $id = $video['id'];
+
+    if (!isset($durations[$id])) {
         continue;
     }
 
-    $line = $video['title'] . "\t"
+    echo $video['title'] . "\t"
         . $video['artist'] . "\t"
-        . $durations[$video['id']] . "\t"
-        . $video['id'];
+        . $durations[$id] . "\t"
+        . $id . "\n";
 
-    echo $line . "\n";
     $count++;
 }
 
 if ($count === 0) {
-    apiError(200, 'SEM_RESULTADOS');
+    jblError(200, 'SEM_RESULTADOS');
 }
